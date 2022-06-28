@@ -14,7 +14,7 @@ namespace Biblioteca.Infraestructure.Mappings
         public AutoMapperProfile()
         {
             CreateMap<Autor, AutorDto>()
-                .ForMember(dest => dest.IdAutor, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.IdAutor, origen => origen.MapFrom(src => src.Id))
                 .ReverseMap();
         }
     }

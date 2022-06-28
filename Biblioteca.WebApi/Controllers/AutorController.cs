@@ -58,7 +58,24 @@ namespace Biblioteca.WebApi.Controllers
             var response = new ApiResponse<AutorDto>(autorDto);
             return Ok(response);
         }
-        
 
+        [HttpPut]
+        public async Task<IActionResult> Put(int id, AutorDto autorDto)
+        { 
+            var autor = _mapper.Map<Autor>(autorDto);
+            autor.Id = id;
+            var result = await _autorService.Actualizar(autor);
+
+            var response = new ApiResponse<bool>(result);
+            return Ok(response);    
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _autorService.Eliminar(id);
+            var response = new ApiResponse<bool>(result);
+            return Ok(response);
+        }
     }
 }

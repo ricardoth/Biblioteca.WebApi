@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Biblioteca.Domain.CustomEntities;
+using Biblioteca.Domain.QueryFilters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +10,7 @@ namespace Biblioteca.Domain.Interfaces
 {
     public interface IAutorService
     {
-        IEnumerable<Autor> GetAutores();
+        PagedList<Autor> GetAutores(AutorQueryFilter filtros);
         Task<Autor> GetAutor(int id);
         Task Agregar(Autor autor);
         Task<bool> Actualizar(Autor autor);

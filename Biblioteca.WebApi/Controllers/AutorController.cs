@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
 using Biblioteca.Domain;
+using Biblioteca.Domain.CustomEntities;
 using Biblioteca.Domain.DTOs;
 using Biblioteca.Domain.Interfaces;
+using Biblioteca.Domain.QueryFilters;
+using Biblioteca.Infraestructure.Interfaces;
 using Biblioteca.WebApi.Responses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Net;
 
 namespace Biblioteca.WebApi.Controllers
@@ -15,26 +19,42 @@ namespace Biblioteca.WebApi.Controllers
     {
         private readonly IAutorService _autorService;
         private readonly IMapper _mapper;
+        private readonly IUriService _uriService;
 
-        public AutorController(IAutorService autorService, IMapper mapper)
+        public AutorController(IAutorService autorService, IMapper mapper, IUriService uriService)
         {
             _autorService = autorService;
             _mapper = mapper;
+            _uriService = uriService;
         }
 
         [HttpGet(Name = nameof(GetAutores))]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public IActionResult GetAutores()
+        public IActionResult GetAutores([FromQuery]AutorQueryFilter filtros)
         {
-            var autores = _autorService.GetAutores();
-            if (autores != null) {
-                var autoresDto = _mapper.Map<List<AutorDto>>(autores);
-                var response = new ApiResponse<List<AutorDto>>(autoresDto);
-                return Ok(response);
-            }
+            var autores = _autorService.GetAutores(filtros);
+            var autoresDtos = _mapper.Map<IEnumerable<AutorDto>>(autores);
 
-            return BadRequest();
+            var metaData = new MetaData
+            {
+                TotalCount = autores.TotalCount,
+                PageSize = autores.PageSize,
+                CurrentPage = autores.CurrentPage,
+                TotalPages = autores.TotalPages,
+                HasNextPage = autores.HasNextPage,
+                HasPreviousPage = autores.HasPreviousPage,
+                NextPageUrl = _uriService.GetAutorPaginationUri(filtros, Url.RouteUrl(nameof(GetAutores))).ToString(),
+                PreviousPageUrl = _uriService.GetAutorPaginationUri(filtros, Url.RouteUrl(nameof(GetAutores))).ToString()
+            };
+
+            var response = new ApiResponse<IEnumerable<AutorDto>>(autoresDtos)
+            {
+                Meta = metaData
+            };
+
+            Response.Headers.Add("x-Pagination", JsonConvert.SerializeObject(metaData));
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
